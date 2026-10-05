@@ -130,6 +130,45 @@
             font-size: 1.1rem;
         }
 
+        /* Large Action Buttons */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .btn-large-action {
+            width: 100%;
+            padding: 22px 15px;
+            border-radius: 14px;
+            border: none;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.1s active;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-large-action:active {
+            transform: scale(0.98);
+        }
+
+        .btn-trekk {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+
+        .btn-utsett {
+            background: linear-gradient(135deg, #ea580c, #c2410c);
+        }
+
         .counter-row {
             display: flex;
             justify-content: space-between;
@@ -178,7 +217,6 @@
             text-align: center;
         }
 
-        /* Tydelige knapper for fredede hummere */
         .protected-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -210,45 +248,6 @@
         .protected-sub {
             font-size: 0.8rem;
             color: var(--text-sub);
-        }
-
-        /* Large Action Buttons */
-        .action-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 14px;
-            margin-top: 15px;
-        }
-
-        .btn-large-action {
-            width: 100%;
-            padding: 22px 15px;
-            border-radius: 14px;
-            border: none;
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            transition: transform 0.1s active;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-large-action:active {
-            transform: scale(0.98);
-        }
-
-        .btn-trekk {
-            background: linear-gradient(135deg, #16a34a, #15803d);
-        }
-
-        .btn-utsett {
-            background: linear-gradient(135deg, #ea580c, #c2410c);
         }
 
         .nav-bar {
@@ -315,6 +314,8 @@
         
         <!-- TAB 1: REGISTRERING -->
         <div id="tab-register" class="tab-content active">
+            
+            <!-- 1. VELG TEINE -->
             <div class="card">
                 <h2>1. VELG TEINE</h2>
                 <div class="teine-select-grid">
@@ -328,6 +329,17 @@
                 </div>
             </div>
 
+            <!-- STORE HANDLINGSKNAPPER FLYTTET HIT -->
+            <div class="action-grid">
+                <button class="btn-large-action btn-trekk" onclick="saveCatch('TREKK')">
+                    <span>💾 REGISTRER TREKK</span>
+                </button>
+                <button class="btn-large-action btn-utsett" onclick="saveCatch('SATT UT')">
+                    <span>⚓ SATT UT / FLYTTET</span>
+                </button>
+            </div>
+
+            <!-- 2. REGISTRER FANGST -->
             <div class="card">
                 <h2>2. REGISTRER FANGST INNE I TEINA</h2>
                 
@@ -389,15 +401,6 @@
                 </div>
             </div>
 
-            <!-- STORE HARDE KNAPPER -->
-            <div class="action-grid">
-                <button class="btn-large-action btn-trekk" onclick="saveCatch('TREKK')">
-                    <span>💾 REGISTRER TREKK</span>
-                </button>
-                <button class="btn-large-action btn-utsett" onclick="saveCatch('SATT UT')">
-                    <span>⚓ SATT UT / FLYTTET</span>
-                </button>
-            </div>
         </div>
 
         <!-- TAB 2: HISTORIKK -->

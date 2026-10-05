@@ -91,8 +91,8 @@
 
         .teine-select-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
             margin-bottom: 15px;
         }
 
@@ -100,10 +100,10 @@
             background-color: #334155;
             color: white;
             border: 2px solid transparent;
-            padding: 14px 8px;
+            padding: 12px 4px;
             border-radius: 10px;
             font-weight: bold;
-            font-size: 1.05rem;
+            font-size: 0.85rem;
             cursor: pointer;
             text-align: center;
         }
@@ -352,15 +352,22 @@
             
             <!-- 1. VELG TEINE -->
             <div class="card">
-                <h2>1. VELG TEINE</h2>
+                <h2>1. VELG TEINE (FORHÅNDSMERKET 1-10)</h2>
                 <div class="teine-select-grid">
-                    <button class="btn-teine selected" onclick="selectTeine('TEINE-01')">TEINE-01</button>
-                    <button class="btn-teine" onclick="selectTeine('TEINE-02')">TEINE-02</button>
-                    <button class="btn-teine" onclick="selectTeine('TEINE-03')">TEINE-03</button>
+                    <button class="btn-teine selected" onclick="selectTeine('TEINE-01')">T-01</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-02')">T-02</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-03')">T-03</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-04')">T-04</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-05')">T-05</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-06')">T-06</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-07')">T-07</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-08')">T-08</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-09')">T-09</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-10')">T-10</button>
                 </div>
                 <div class="input-group">
-                    <label>Eller skriv inn annen Teine-ID:</label>
-                    <input type="text" id="custom-teine-id" placeholder="f.eks. TEINE-04" oninput="customTeineChanged(this.value)">
+                    <label>Valgt teine: <strong id="selected-display" style="color:#38bdf8;">TEINE-01</strong></label>
+                    <input type="text" id="custom-teine-id" placeholder="Skriv inn egen Teine-ID dersom annen" oninput="customTeineChanged(this.value)">
                 </div>
             </div>
 
@@ -507,15 +514,20 @@
         function selectTeine(id) {
             selectedTeine = id;
             document.getElementById('custom-teine-id').value = '';
+            document.getElementById('selected-display').innerText = id;
             document.querySelectorAll('.btn-teine').forEach(btn => {
-                btn.classList.toggle('selected', btn.innerText === id);
+                const btnNum = btn.innerText.replace('T-', 'TEINE-');
+                btn.classList.toggle('selected', btnNum === id);
             });
         }
 
         function customTeineChanged(val) {
             if (val.trim() !== '') {
                 selectedTeine = val.trim();
+                document.getElementById('selected-display').innerText = selectedTeine;
                 document.querySelectorAll('.btn-teine').forEach(btn => btn.classList.remove('selected'));
+            } else {
+                selectTeine('TEINE-01');
             }
         }
 

@@ -1,670 +1,530 @@
 <!DOCTYPE html>
-<html lang="no" class="h-full bg-slate-950 text-slate-100">
+<html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TeineLogg PRO - Hummer & Krabbe</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HummerLogg PRO</title>
+    
+    <!-- Leaflet CSS for Kart -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- jsQR Library for browser camera QR scanning -->
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ocean: {
-              800: '#0f172a',
-              900: '#080e1a',
-              accent: '#0284c7',
-              lobster: '#ea580c',
-              crab: '#d97706'
-            }
-          }
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-orange: #f97316;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
         }
-      }
-    }
-  </script>
 
-  <style>
-    body {
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 80px;
+        }
 
-    .touch-btn {
-      transition: transform 0.08s ease-in-out, background-color 0.15s, border-color 0.15s;
-    }
-    .touch-btn:active {
-      transform: scale(0.92);
-    }
+        .header {
+            background-color: var(--card-bg);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
 
-    #scanner-overlay {
-      border: 3px solid #0284c7;
-      box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.65);
-    }
+        .header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+        }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 3px;
-    }
-  </style>
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--text-sub);
+            border-bottom: 1px solid #334155;
+            padding-bottom: 8px;
+        }
+
+        .teine-select-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-teine {
+            background-color: #334155;
+            color: white;
+            border: 2px solid transparent;
+            padding: 12px 5px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-teine.selected {
+            border-color: var(--accent-blue);
+            background-color: #0284c7;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .counter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .counter-row:last-child {
+            border-bottom: none;
+        }
+
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-counter {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-minus { background-color: #475569; }
+        .btn-plus { background-color: var(--accent-blue); }
+
+        .counter-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+            width: 24px;
+            text-align: center;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-primary { background-color: var(--accent-blue); }
+        .btn-success { background-color: var(--accent-green); }
+        .btn-warning { background-color: var(--accent-orange); }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #334155;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--accent-blue);
+        }
+
+        .nav-item-icon {
+            font-size: 1.2rem;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .history-item {
+            background-color: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
+<body>
 
-<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden selection:bg-cyan-500 selection:text-white">
-
-  <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-xl">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-600 to-red-700 flex items-center justify-center text-white text-xl shadow-md border border-orange-400/30">
-        🦞
-      </div>
-      <div>
-        <h1 class="font-extrabold text-lg leading-tight tracking-wide text-white">TeineLogg <span class="text-xs bg-cyan-950 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-800">PRO</span></h1>
-        <p class="text-xs text-cyan-400 font-medium">Fangst & Teinebehandling</p>
-      </div>
+    <div class="header">
+        <h1>🦞 HummerLogg PRO</h1>
     </div>
 
-    <div class="flex items-center space-x-2 bg-slate-950/80 px-3 py-1.5 rounded-full border border-slate-800 text-xs shadow-inner">
-      <span id="gps-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span id="gps-status-text" class="text-slate-300 font-medium font-mono text-[11px]">59.9139, 10.7522</span>
-    </div>
-  </header>
-
-  <main class="flex-1 overflow-y-auto pb-28 p-4 max-w-md mx-auto w-full space-y-4">
-
-    <!-- TAB 1: REGISTRER / SKANN -->
-    <section id="tab-register" class="tab-content space-y-4">
-      
-      <!-- Top Action Bar -->
-      <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-lg space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">1. Identifiser Teine</span>
-          <span id="current-clock" class="text-xs font-mono bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800 text-slate-400">--:--:--</span>
-        </div>
-
-        <div class="flex space-x-2">
-          <div class="relative flex-1">
-            <input type="text" id="input-teine-id" value="TEINE-01" placeholder="TEINE-01" 
-              class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-500 rounded-xl px-4 py-3 text-lg font-black text-cyan-300 uppercase placeholder-slate-600 outline-none transition shadow-inner">
-            <span class="absolute right-3 top-3.5 text-xs text-slate-500 font-mono">ID</span>
-          </div>
-
-          <button onclick="startCameraScanner()" class="touch-btn bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white font-bold px-4 py-3 rounded-xl flex items-center justify-center shadow-lg space-x-2 border border-cyan-400/30">
-            <i class="fa-solid fa-qrcode text-xl"></i>
-            <span class="text-xs font-bold hidden sm:inline">Skann</span>
-          </button>
-        </div>
-
-        <!-- Quick Pickers -->
-        <div class="flex items-center space-x-2 overflow-x-auto pt-1">
-          <span class="text-[11px] text-slate-500 whitespace-nowrap font-medium">Hurtigvalg:</span>
-          <button onclick="setTeineId('TEINE-01')" class="bg-slate-800 hover:bg-slate-700 active:bg-cyan-900 text-cyan-400 border border-slate-700 text-xs px-2.5 py-1 rounded-lg font-bold whitespace-nowrap">TEINE-01</button>
-          <button onclick="setTeineId('TEINE-02')" class="bg-slate-800 hover:bg-slate-700 active:bg-cyan-900 text-cyan-400 border border-slate-700 text-xs px-2.5 py-1 rounded-lg font-bold whitespace-nowrap">TEINE-02</button>
-          <button onclick="setTeineId('TEINE-03')" class="bg-slate-800 hover:bg-slate-700 active:bg-cyan-900 text-cyan-400 border border-slate-700 text-xs px-2.5 py-1 rounded-lg font-bold whitespace-nowrap">TEINE-03</button>
-        </div>
-      </div>
-
-      <!-- Action Type Buttons: UTSETT vs TREKK -->
-      <div class="space-y-2">
-        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">2. Handling</label>
-        <div class="grid grid-cols-2 gap-3">
-          <button id="btn-action-sett" onclick="setActionType('UTSETT')" 
-            class="touch-btn p-3.5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 text-center transition bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700">
-            <div class="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-xl">
-              ⚓
-            </div>
-            <span class="font-extrabold text-sm">Sett Ut</span>
-            <span class="text-[10px] text-slate-500">I sjøen</span>
-          </button>
-
-          <button id="btn-action-trekk" onclick="setActionType('TREKK')" 
-            class="touch-btn p-3.5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 text-center transition bg-orange-950/40 border-orange-500 text-orange-300 shadow-xl">
-            <div class="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 text-xl">
-              🦞
-            </div>
-            <span class="font-extrabold text-sm">Trekk / Fangst</span>
-            <span class="text-[10px] text-orange-400/80">Registrer & tøm</span>
-          </button>
-        </div>
-      </div>
-
-      <div id="catch-section" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <h3 class="text-xs font-black uppercase tracking-wider text-orange-400 flex items-center space-x-1.5">
-            <i class="fa-solid fa-basket-shopping text-sm"></i>
-            <span>3. Registrer Fangst i Teina</span>
-          </h3>
-          <span class="text-[10px] bg-slate-950 px-2 py-0.5 rounded text-slate-400 border border-slate-800">Fysiske knapper</span>
-        </div>
-
-        <!-- LOVLIG FANGST GROUP -->
-        <div class="space-y-2.5">
-          <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wide flex items-center space-x-1">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-            <span>Lovlig Fangst (Beholdes)</span>
-          </div>
-
-          <!-- 1. Hummer Lovlig Minstemål -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/90 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-              <div class="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🦞</div>
-              <div>
-                <div class="font-extrabold text-sm text-white">Hummer</div>
-                <div class="text-[10px] font-medium text-emerald-400">Lovlig minstemål (≥90mm)</div>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <button onclick="adjustCounter('hummer_lovlig', -1)" class="touch-btn w-11 h-11 bg-slate-900 active:bg-slate-800 text-slate-300 active:text-red-400 border-2 border-slate-700 active:border-red-500 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">-</button>
-              <span id="count-hummer_lovlig" class="w-7 text-center text-xl font-black text-white font-mono">0</span>
-              <button onclick="adjustCounter('hummer_lovlig', 1)" class="touch-btn w-11 h-11 bg-emerald-950 active:bg-emerald-900 text-emerald-300 border-2 border-emerald-600 rounded-xl text-2xl font-black flex items-center justify-center shadow-md shadow-emerald-950/50">+</button>
-            </div>
-          </div>
-
-          <!-- 2. Krabber -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/90 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-              <div class="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🦀</div>
-              <div>
-                <div class="font-extrabold text-sm text-white">Krabber</div>
-                <div class="text-[10px] font-medium text-amber-400">Krabbe</div>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <button onclick="adjustCounter('krabbe', -1)" class="touch-btn w-11 h-11 bg-slate-900 active:bg-slate-800 text-slate-300 active:text-red-400 border-2 border-slate-700 active:border-red-500 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">-</button>
-              <span id="count-krabbe" class="w-7 text-center text-xl font-black text-white font-mono">0</span>
-              <button onclick="adjustCounter('krabbe', 1)" class="touch-btn w-11 h-11 bg-amber-950 active:bg-amber-900 text-amber-300 border-2 border-amber-600 rounded-xl text-2xl font-black flex items-center justify-center shadow-md shadow-amber-950/50">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- FREDET / SATT UT GROUP -->
-        <div class="space-y-2.5 pt-2 border-t border-slate-800/80">
-          <div class="text-[11px] font-bold text-red-400 uppercase tracking-wide flex items-center space-x-1">
-            <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
-            <span>Fredet Fangst (Settes ut igjen)</span>
-          </div>
-
-          <!-- 3. Hummer under minstemål -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/90 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-              <div class="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">📏</div>
-              <div>
-                <div class="font-extrabold text-sm text-slate-200">Hummer under minstemål</div>
-                <div class="text-[10px] font-medium text-red-400">&lt; 90 mm (Satt ut)</div>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <button onclick="adjustCounter('hummer_under', -1)" class="touch-btn w-11 h-11 bg-slate-900 active:bg-slate-800 text-slate-300 active:text-red-400 border-2 border-slate-700 active:border-red-500 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">-</button>
-              <span id="count-hummer_under" class="w-7 text-center text-xl font-black text-white font-mono">0</span>
-              <button onclick="adjustCounter('hummer_under', 1)" class="touch-btn w-11 h-11 bg-slate-800 active:bg-slate-700 text-red-400 border-2 border-slate-600 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">+</button>
-            </div>
-          </div>
-
-          <!-- 4. Hummer over maksmål -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/90 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-              <div class="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">📏</div>
-              <div>
-                <div class="font-extrabold text-sm text-slate-200">Hummer over maksmål</div>
-                <div class="text-[10px] font-medium text-orange-400">&gt; 115 mm (Satt ut)</div>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <button onclick="adjustCounter('hummer_over', -1)" class="touch-btn w-11 h-11 bg-slate-900 active:bg-slate-800 text-slate-300 active:text-red-400 border-2 border-slate-700 active:border-red-500 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">-</button>
-              <span id="count-hummer_over" class="w-7 text-center text-xl font-black text-white font-mono">0</span>
-              <button onclick="adjustCounter('hummer_over', 1)" class="touch-btn w-11 h-11 bg-slate-800 active:bg-slate-700 text-orange-400 border-2 border-slate-600 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">+</button>
-            </div>
-          </div>
-
-          <!-- 5. Hummer med rogn -->
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/90 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-              <div class="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🥚</div>
-              <div>
-                <div class="font-extrabold text-sm text-slate-200">Hummer med rogn</div>
-                <div class="text-[10px] font-medium text-amber-400">Fredet hele året (Satt ut)</div>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <button onclick="adjustCounter('hummer_rogn', -1)" class="touch-btn w-11 h-11 bg-slate-900 active:bg-slate-800 text-slate-300 active:text-red-400 border-2 border-slate-700 active:border-red-500 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">-</button>
-              <span id="count-hummer_rogn" class="w-7 text-center text-xl font-black text-white font-mono">0</span>
-              <button onclick="adjustCounter('hummer_rogn', 1)" class="touch-btn w-11 h-11 bg-slate-800 active:bg-slate-700 text-amber-400 border-2 border-slate-600 rounded-xl text-2xl font-black flex items-center justify-center shadow-md">+</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Optional Notat Field -->
-      <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-1.5 shadow-lg">
-        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Notat / Agn / Dybde (Valgfritt)</label>
-        <input type="text" id="input-notat" placeholder="f.eks. Råtten makrell, satt på 22 m dybde" 
-          class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none">
-      </div>
-
-      <!-- Save Button -->
-      <button onclick="saveLogEntry()" class="touch-btn w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-teal-700 text-white font-black text-base py-4 rounded-2xl shadow-xl border border-emerald-400/30 flex items-center justify-center space-x-2 tracking-wide">
-        <i class="fa-solid fa-floppy-disk text-lg"></i>
-        <span>LAGRE LOGGFØRING</span>
-      </button>
-
-    </section>
-
-    <section id="tab-history" class="tab-content hidden space-y-3">
-      <div class="flex items-center justify-between">
-        <h2 class="text-base font-extrabold text-white">Logghistorikk</h2>
+    <div class="container">
         
-        <select id="filter-teine-id" onchange="renderHistoryLog()" class="bg-slate-900 border border-slate-800 text-xs font-bold text-cyan-300 rounded-xl px-3 py-1.5 outline-none">
-          <option value="ALL">Alle Teiner</option>
-        </select>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="exportCSV()" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 py-2.5 rounded-xl flex items-center justify-center space-x-1.5">
-          <i class="fa-solid fa-file-csv text-emerald-400 text-sm"></i>
-          <span>Eksporter CSV</span>
-        </button>
-        <button onclick="loadDemoData()" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-cyan-300 py-2.5 rounded-xl flex items-center justify-center space-x-1.5">
-          <i class="fa-solid fa-database text-cyan-400 text-sm"></i>
-          <span>Fyll Demodata</span>
-        </button>
-      </div>
-
-      <div id="history-log-list" class="space-y-3">
-        <!-- Dynamically rendered -->
-      </div>
-    </section>
-
-  </main>
-
-  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40">
-    <div class="max-w-md mx-auto grid grid-cols-2 gap-1 p-2">
-      <button onclick="switchTab('register')" id="nav-register" class="nav-btn flex flex-col items-center justify-center py-2.5 rounded-xl text-cyan-400 bg-slate-800/80">
-        <i class="fa-solid fa-plus-circle text-xl"></i>
-        <span class="text-[11px] font-extrabold mt-1">Registrer Fangst</span>
-      </button>
-
-      <button onclick="switchTab('history')" id="nav-history" class="nav-btn flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-400 hover:text-slate-200">
-        <i class="fa-solid fa-list-check text-xl"></i>
-        <span class="text-[11px] font-extrabold mt-1">Historikk & Logg</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- CAMERA SCANNER MODAL -->
-  <div id="scanner-modal" class="fixed inset-0 z-50 bg-black/95 hidden flex flex-col items-center justify-between p-4">
-    <div class="w-full flex justify-between items-center text-white pt-2 max-w-sm">
-      <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-camera text-cyan-400"></i>
-        <span class="font-bold text-sm">Skann QR eller tast ID</span>
-      </div>
-      <button onclick="stopCameraScanner()" class="bg-slate-800 text-slate-300 hover:bg-slate-700 w-9 h-9 rounded-full flex items-center justify-center">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-    </div>
-
-    <div class="relative w-full max-w-sm aspect-square my-auto rounded-3xl overflow-hidden bg-slate-950 flex items-center justify-center border-2 border-slate-800 shadow-2xl">
-      <video id="qr-video" class="w-full h-full object-cover" playsinline></video>
-      <canvas id="qr-canvas" class="hidden"></canvas>
-      <div id="scanner-overlay" class="absolute w-48 h-48 rounded-2xl pointer-events-none"></div>
-    </div>
-
-    <div class="w-full max-w-sm pb-4 space-y-3 text-center">
-      <p id="scanner-status" class="text-xs text-cyan-300 font-medium">Pek kameraet mot koden på teina...</p>
-      
-      <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 space-y-2">
-        <span class="text-xs text-slate-400 font-semibold block">Tast manuell ID:</span>
-        <div class="flex space-x-2">
-          <input type="text" id="modal-manual-id" placeholder="TEINE-01" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-cyan-300 font-bold uppercase outline-none">
-          <button onclick="useManualIdFromModal()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs px-3 py-2 rounded-xl">Bruk ID</button>
-        </div>
-      </div>
-
-      <button onclick="stopCameraScanner()" class="w-full bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl border border-slate-700 text-xs">Avbryt Skanning</button>
-    </div>
-  </div>
-
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white font-bold text-xs px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none flex items-center space-x-2">
-    <i class="fa-solid fa-circle-check"></i>
-    <span id="toast-message">Lagret!</span>
-  </div>
-
-  <script>
-    let currentAction = 'TREKK';
-    let currentGeo = { lat: '59.91390', lng: '10.75220', acc: 10 };
-    let videoStream = null;
-    let animationFrameId = null;
-
-    // Separate counters for all required lines
-    let catchCounts = {
-      hummer_lovlig: 0,
-      krabbe: 0,
-      hummer_under: 0,
-      hummer_over: 0,
-      hummer_rogn: 0
-    };
-
-    const STORAGE_KEY = 'hummer_teinelogg_v2';
-
-    window.addEventListener('load', () => {
-      startClock();
-      renderHistoryLog();
-    });
-
-    function startClock() {
-      const clockEl = document.getElementById('current-clock');
-      setInterval(() => {
-        clockEl.innerText = new Date().toLocaleTimeString('no-NO');
-      }, 1000);
-      clockEl.innerText = new Date().toLocaleTimeString('no-NO');
-    }
-
-    function setActionType(type) {
-      currentAction = type;
-      const btnSett = document.getElementById('btn-action-sett');
-      const btnTrekk = document.getElementById('btn-action-trekk');
-      const catchSection = document.getElementById('catch-section');
-
-      if (type === 'UTSETT') {
-        btnSett.className = "touch-btn p-3.5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 text-center transition bg-cyan-950/40 border-cyan-500 text-cyan-300 shadow-xl";
-        btnTrekk.className = "touch-btn p-3.5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 text-center transition bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700";
-        catchSection.classList.add('hidden');
-      } else {
-        btnTrekk.className = "touch-btn p-3.5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 text-center transition bg-orange-950/40 border-orange-500 text-orange-300 shadow-xl";
-        btnSett.className = "touch-btn p-3.5 rounded-2xl border-2 flex flex-col items-center justify-center space-y-1 text-center transition bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700";
-        catchSection.classList.remove('hidden');
-      }
-    }
-
-    function adjustCounter(species, delta) {
-      catchCounts[species] = Math.max(0, catchCounts[species] + delta);
-      document.getElementById(`count-${species}`).innerText = catchCounts[species];
-    }
-
-    function setTeineId(id) {
-      document.getElementById('input-teine-id').value = id.toUpperCase();
-    }
-
-    function saveLogEntry() {
-      const teineIdInput = document.getElementById('input-teine-id').value.trim().toUpperCase();
-      if (!teineIdInput) {
-        showToast("⚠️ Vennligst oppgi en Teine-ID!", "bg-red-600");
-        return;
-      }
-
-      const notat = document.getElementById('input-notat').value.trim();
-
-      const newEntry = {
-        id: 'LOG-' + Date.now(),
-        teineId: teineIdInput,
-        action: currentAction,
-        timestamp: new Date().toISOString(),
-        formattedTime: new Date().toLocaleString('no-NO'),
-        lat: currentGeo.lat,
-        lng: currentGeo.lng,
-        hummer_lovlig: currentAction === 'TREKK' ? catchCounts.hummer_lovlig : 0,
-        krabbe: currentAction === 'TREKK' ? catchCounts.krabbe : 0,
-        hummer_under: currentAction === 'TREKK' ? catchCounts.hummer_under : 0,
-        hummer_over: currentAction === 'TREKK' ? catchCounts.hummer_over : 0,
-        hummer_rogn: currentAction === 'TREKK' ? catchCounts.hummer_rogn : 0,
-        notat: notat
-      };
-
-      const entries = getStoredEntries();
-      entries.unshift(newEntry);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-
-      // Reset counters
-      catchCounts = { hummer_lovlig: 0, krabbe: 0, hummer_under: 0, hummer_over: 0, hummer_rogn: 0 };
-      ['hummer_lovlig', 'krabbe', 'hummer_under', 'hummer_over', 'hummer_rogn'].forEach(k => {
-        document.getElementById(`count-${k}`).innerText = '0';
-      });
-      document.getElementById('input-notat').value = '';
-
-      showToast(`✅ ${currentAction} registrert for ${teineIdInput}!`);
-      renderHistoryLog();
-    }
-
-    function getStoredEntries() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    }
-
-    function renderHistoryLog() {
-      const entries = getStoredEntries();
-      const listContainer = document.getElementById('history-log-list');
-      const filterSelect = document.getElementById('filter-teine-id');
-      const selectedFilter = filterSelect.value;
-
-      const uniqueTeiner = [...new Set(entries.map(e => e.teineId))];
-      filterSelect.innerHTML = '<option value="ALL">Alle Teiner</option>';
-      uniqueTeiner.forEach(id => {
-        const opt = document.createElement('option');
-        opt.value = id;
-        opt.innerText = id;
-        if (id === selectedFilter) opt.selected = true;
-        filterSelect.appendChild(opt);
-      });
-
-      const filteredEntries = selectedFilter === 'ALL' ? entries : entries.filter(e => e.teineId === selectedFilter);
-
-      listContainer.innerHTML = '';
-
-      if (filteredEntries.length === 0) {
-        listContainer.innerHTML = `
-          <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-center text-slate-500">
-            <p class="text-sm font-medium">Ingen historikk registrert ennå.</p>
-            <button onclick="loadDemoData()" class="mt-3 text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded-xl border border-slate-700 font-bold">Legg inn demodata</button>
-          </div>
-        `;
-        return;
-      }
-
-      filteredEntries.forEach(e => {
-        const card = document.createElement('div');
-        card.className = "bg-slate-900 border border-slate-800 p-3.5 rounded-2xl space-y-2 shadow-md";
-        const isUtsett = e.action === 'UTSETT';
-
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="font-extrabold text-sm text-cyan-300">${e.teineId}</span>
-              <span class="text-[10px] font-black px-2 py-0.5 rounded-md ${isUtsett ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-orange-950 text-orange-400 border border-orange-800'}">
-                ${e.action}
-              </span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span class="text-[11px] text-slate-500 font-mono">${e.formattedTime}</span>
-              <button onclick="deleteSingleLog('${e.id}')" class="text-slate-600 hover:text-red-400 text-xs px-1">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
-
-          ${e.action === 'TREKK' ? `
-            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1 text-xs">
-              <div class="text-emerald-400 font-bold flex justify-between">
-                <span>Lovlig fangst:</span>
-                <span>🦞 ${e.hummer_lovlig || 0} lovlig | 🦀 ${e.krabbe || 0} krabber</span>
-              </div>
-              ${(e.hummer_under || e.hummer_over || e.hummer_rogn) ? `
-                <div class="text-red-400 font-medium flex justify-between border-t border-slate-900 pt-1 text-[11px]">
-                  <span>Fredet (satt ut):</span>
-                  <span>
-                    ${e.hummer_under ? `📏 ${e.hummer_under} under ` : ''}
-                    ${e.hummer_over ? `📏 ${e.hummer_over} over ` : ''}
-                    ${e.hummer_rogn ? `🥚 ${e.hummer_rogn} rogn` : ''}
-                  </span>
+        <!-- TAB 1: REGISTRERING -->
+        <div id="tab-register" class="tab-content active">
+            <div class="card">
+                <h2>1. VELG TEINE</h2>
+                <div class="teine-select-grid">
+                    <button class="btn-teine selected" onclick="selectTeine('TEINE-01')">TEINE-01</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-02')">TEINE-02</button>
+                    <button class="btn-teine" onclick="selectTeine('TEINE-03')">TEINE-03</button>
                 </div>
-              ` : ''}
+                <div class="input-group">
+                    <label>Eller skriv inn Teine-ID:</label>
+                    <input type="text" id="custom-teine-id" placeholder="f.eks. TEINE-04" oninput="customTeineChanged(this.value)">
+                </div>
             </div>
-          ` : ''}
 
-          <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
-            <span>📍 Posisjon: ${e.lat}, ${e.lng}</span>
-            <a href="https://maps.google.com/?q=${e.lat},${e.lng}" target="_blank" class="text-cyan-400 hover:underline">Kart ↗</a>
-          </div>
+            <div class="card">
+                <h2>2. REGISTRER FANGST I TEINA</h2>
+                
+                <div class="counter-row">
+                    <span>🟢 Hummer (Lovlig minstemål)</span>
+                    <div class="counter-controls">
+                        <button class="btn-counter btn-minus" onclick="updateCount('legal', -1)">-</button>
+                        <span id="count-legal" class="counter-val">0</span>
+                        <button class="btn-counter btn-plus" onclick="updateCount('legal', 1)">+</button>
+                    </div>
+                </div>
 
-          ${e.notat ? `<p class="text-xs text-slate-300 italic px-1 pt-1 border-t border-slate-800/60">"${e.notat}"</p>` : ''}
-        `;
-        listContainer.appendChild(card);
-      });
-    }
+                <div class="counter-row">
+                    <span>🦀 Krabber</span>
+                    <div class="counter-controls">
+                        <button class="btn-counter btn-minus" onclick="updateCount('crab', -1)">-</button>
+                        <span id="count-crab" class="counter-val">0</span>
+                        <button class="btn-counter btn-plus" onclick="updateCount('crab', 1)">+</button>
+                    </div>
+                </div>
 
-    function deleteSingleLog(id) {
-      let entries = getStoredEntries();
-      entries = entries.filter(e => e.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-      renderHistoryLog();
-      showToast("Logg slettet");
-    }
+                <div class="counter-row">
+                    <span>📏 Hummer under minstemål</span>
+                    <div class="counter-controls">
+                        <button class="btn-counter btn-minus" onclick="updateCount('under', -1)">-</button>
+                        <span id="count-under" class="counter-val">0</span>
+                        <button class="btn-counter btn-plus" onclick="updateCount('under', 1)">+</button>
+                    </div>
+                </div>
 
-    function exportCSV() {
-      const entries = getStoredEntries();
-      if (entries.length === 0) {
-        showToast("Ingen data å eksportere", "bg-red-600");
-        return;
-      }
+                <div class="counter-row">
+                    <span>📏 Hummer over maksmål</span>
+                    <div class="counter-controls">
+                        <button class="btn-counter btn-minus" onclick="updateCount('over', -1)">-</button>
+                        <span id="count-over" class="counter-val">0</span>
+                        <button class="btn-counter btn-plus" onclick="updateCount('over', 1)">+</button>
+                    </div>
+                </div>
 
-      let csv = "ID,TeineID,Handling,Tidspunkt,Breddegrad,Lengdegrad,LovligHummer,Krabber,UnderMinstemal,OverMaksmal,MedRogn,Notat\n";
-      entries.forEach(e => {
-        csv += `"${e.id}","${e.teineId}","${e.action}","${e.timestamp}","${e.lat}","${e.lng}",${e.hummer_lovlig || 0},${e.krabbe || 0},${e.hummer_under || 0},${e.hummer_over || 0},${e.hummer_rogn || 0},"${(e.notat || '').replace(/"/g, '""')}"\n`;
-      });
+                <div class="counter-row">
+                    <span>🥚 Hummer med rogn</span>
+                    <div class="counter-controls">
+                        <button class="btn-counter btn-minus" onclick="updateCount('berried', -1)">-</button>
+                        <span id="count-berried" class="counter-val">0</span>
+                        <button class="btn-counter btn-plus" onclick="updateCount('berried', 1)">+</button>
+                    </div>
+                </div>
+            </div>
 
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `TeineLogg_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+            <button class="btn-action btn-success" onclick="saveCatch('TREKK')">💾 REGISTRER TREKK (MED GPS)</button>
+            <button class="btn-action btn-warning" onclick="saveCatch('SATT UT')">⚓ REGISTRER KUN UTSETT / FLYTTING</button>
+        </div>
 
-    function loadDemoData() {
-      const demo = [
-        { id: 'LOG-1', teineId: 'TEINE-01', action: 'TREKK', timestamp: new Date(Date.now() - 1800000).toISOString(), formattedTime: 'I dag 12:45', lat: '59.91390', lng: '10.75220', hummer_lovlig: 2, krabbe: 5, hummer_under: 1, hummer_over: 0, hummer_rogn: 1, notat: 'Rogn-hummer satt fint ut' },
-        { id: 'LOG-2', teineId: 'TEINE-02', action: 'TREKK', timestamp: new Date(Date.now() - 3600000).toISOString(), formattedTime: 'I dag 12:15', lat: '59.91810', lng: '10.74110', hummer_lovlig: 1, krabbe: 3, hummer_under: 2, hummer_over: 0, hummer_rogn: 0, notat: 'Mye småhummer i området' }
-      ];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(demo));
-      renderHistoryLog();
-      showToast("Ladet inn testdata!");
-    }
+        <!-- TAB 2: HISTORIKK -->
+        <div id="tab-history" class="tab-content">
+            <div class="card">
+                <h2>LOGGFØRTE TREKK OG UTSETT</h2>
+                <div id="history-list">
+                    <p style="color: var(--text-sub);">Ingen registreringer enda.</p>
+                </div>
+            </div>
+        </div>
 
-    function startCameraScanner() {
-      const modal = document.getElementById('scanner-modal');
-      const video = document.getElementById('qr-video');
-      const statusText = document.getElementById('scanner-status');
+        <!-- TAB 3: QR-KODER -->
+        <div id="tab-qr" class="tab-content">
+            <div class="card">
+                <h2>GENERER QR-KODE FOR TEINE</h2>
+                <div class="input-group">
+                    <label>Skriv inn Teine-ID:</label>
+                    <input type="text" id="qr-input" value="TEINE-01">
+                </div>
+                <button class="btn-action btn-primary" onclick="generateQR()">Lag QR-kode</button>
+                <div id="qrcode"></div>
+            </div>
+        </div>
 
-      modal.classList.remove('hidden');
+        <!-- TAB 4: KART -->
+        <div id="tab-map" class="tab-content">
+            <div class="card">
+                <h2>TEINEPLASSERINGER PÅ KART</h2>
+                <div id="map"></div>
+            </div>
+        </div>
 
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(stream => {
-          videoStream = stream;
-          video.srcObject = stream;
-          video.setAttribute('playsinline', true);
-          video.play();
-          statusText.innerText = "Søker etter QR-kode...";
-          requestAnimationFrame(scanQRCodeTick);
-        })
-        .catch(err => {
-          statusText.innerText = "Kamera utilgjengelig. Tast inn ID manuelt nedenfor.";
-        });
-    }
+    </div>
 
-    function scanQRCodeTick() {
-      const video = document.getElementById('qr-video');
-      const canvas = document.getElementById('qr-canvas');
-      const ctx = canvas.getContext('2d');
-      const statusText = document.getElementById('scanner-status');
+    <!-- MENY NEDERST -->
+    <div class="nav-bar">
+        <button class="nav-item active" onclick="switchTab('register', this)">
+            <span class="nav-item-icon">📝</span>
+            <span>Registrer</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('history', this)">
+            <span class="nav-item-icon">📋</span>
+            <span>Historikk</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('qr', this)">
+            <span class="nav-item-icon">📱</span>
+            <span>QR-Koder</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('map', this)">
+            <span class="nav-item-icon">🗺️</span>
+            <span>Kart</span>
+        </button>
+    </div>
 
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    <!-- Leaflet JS for Kart -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: "dontInvert",
-        });
+    <script>
+        let selectedTeine = 'TEINE-01';
+        let counts = { legal: 0, crab: 0, under: 0, over: 0, berried: 0 };
+        let logs = JSON.parse(localStorage.getItem('hummer_logs') || '[]');
+        let map = null;
+        let mapMarkers = [];
 
-        if (code && code.data) {
-          setTeineId(code.data.toUpperCase());
-          showToast(`QR Lest: ${code.data.toUpperCase()}`);
-          stopCameraScanner();
-          return;
+        function selectTeine(id) {
+            selectedTeine = id;
+            document.getElementById('custom-teine-id').value = '';
+            document.querySelectorAll('.btn-teine').forEach(btn => {
+                btn.classList.toggle('selected', btn.innerText === id);
+            });
         }
-      }
 
-      animationFrameId = requestAnimationFrame(scanQRCodeTick);
-    }
+        function customTeineChanged(val) {
+            if (val.trim() !== '') {
+                selectedTeine = val.trim();
+                document.querySelectorAll('.btn-teine').forEach(btn => btn.classList.remove('selected'));
+            }
+        }
 
-    function useManualIdFromModal() {
-      const manualVal = document.getElementById('modal-manual-id').value.trim().toUpperCase();
-      if (!manualVal) {
-        showToast("Tast inn en ID først!", "bg-red-600");
-        return;
-      }
-      setTeineId(manualVal);
-      showToast(`Valgte ID: ${manualVal}`);
-      document.getElementById('modal-manual-id').value = '';
-      stopCameraScanner();
-    }
+        function updateCount(type, delta) {
+            counts[type] = Math.max(0, counts[type] + delta);
+            document.getElementById(`count-${type}`).innerText = counts[type];
+        }
 
-    function stopCameraScanner() {
-      const modal = document.getElementById('scanner-modal');
-      modal.classList.add('hidden');
+        function resetCounts() {
+            counts = { legal: 0, crab: 0, under: 0, over: 0, berried: 0 };
+            for (let type in counts) {
+                document.getElementById(`count-${type}`).innerText = 0;
+            }
+        }
 
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-        videoStream = null;
-      }
-    }
+        function saveCatch(actionType) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        storeLog(actionType, pos.coords.latitude, pos.coords.longitude);
+                    },
+                    err => {
+                        storeLog(actionType, null, null);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                storeLog(actionType, null, null);
+            }
+        }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        function storeLog(actionType, lat, lng) {
+            const entry = {
+                id: Date.now(),
+                teine: selectedTeine,
+                action: actionType,
+                counts: { ...counts },
+                lat: lat,
+                lng: lng,
+                timestamp: new Date().toLocaleString('no-NO')
+            };
 
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.className = "nav-btn flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-400 hover:text-slate-200";
-      });
+            logs.unshift(entry);
+            localStorage.setItem('hummer_logs', JSON.stringify(logs));
+            alert(`Registrering lagret for ${selectedTeine}!`);
+            resetCounts();
+            renderHistory();
+        }
 
-      const activeNav = document.getElementById(`nav-${tabId}`);
-      if (activeNav) {
-        activeNav.className = "nav-btn flex flex-col items-center justify-center py-2.5 rounded-xl text-cyan-400 bg-slate-800/80";
-      }
-    }
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            if (logs.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-sub);">Ingen registreringer enda.</p>';
+                return;
+            }
 
-    function showToast(msg, bgClass = "bg-emerald-600") {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-message');
+            list.innerHTML = logs.map(item => `
+                <div class="history-item">
+                    <strong>${item.teine} (${item.action})</strong> - ${item.timestamp}<br>
+                    🟢 Lovlig: ${item.counts.legal} | 🦀 Krabbe: ${item.counts.crab}<br>
+                    📏 Undermål: ${item.counts.under} | Overmål: ${item.counts.over} | 🥚 Rogn: ${item.counts.berried}<br>
+                    ${item.lat ? `📍 GPS: ${item.lat.toFixed(5)},${item.lng.toFixed(5)}` : '📍 GPS: Ikke tilgjengelig'}
+                </div>
+            `).join('');
+        }
 
-      toastMsg.innerText = msg;
-      toast.className = `fixed top-16 left-1/2 -translate-x-1/2 z-50 ${bgClass} text-white font-bold text-xs px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-100 flex items-center space-x-2`;
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            if (el) el.classList.add('active');
 
-      setTimeout(() => {
-        toast.classList.add('opacity-0');
-      }, 2500);
-    }
-  </script>
+            if (tabId === 'history') renderHistory();
+            if (tabId === 'map') initOrUpdateMap();
+        }
+
+        function generateQR() {
+            const val = document.getElementById('qr-input').value;
+            const container = document.getElementById('qrcode');
+            container.innerHTML = '';
+            if (val) {
+                new QRCode(container, {
+                    text: val,
+                    width: 180,
+                    height: 180
+                });
+            }
+        }
+
+        function initOrUpdateMap() {
+            setTimeout(() => {
+                if (!map) {
+                    map = L.map('map').setView([59.91, 10.75], 8); // Standard visning Norge (Oslofjorden/Østlandet)
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap'
+                    }).addTo(map);
+                }
+
+                // Fjern gamle markører
+                mapMarkers.forEach(m => map.removeLayer(m));
+                mapMarkers = [];
+
+                let bounds = [];
+
+                // Finn nyeste posisjon per teine
+                const latestTeinePositions = {};
+                logs.forEach(log => {
+                    if (log.lat && log.lng && !latestTeinePositions[log.teine]) {
+                        latestTeinePositions[log.teine] = log;
+                    }
+                });
+
+                for (let teineId in latestTeinePositions) {
+                    const log = latestTeinePositions[teineId];
+                    const marker = L.marker([log.lat, log.lng]).addTo(map);
+                    marker.bindPopup(`
+                        <strong>${log.teine}</strong><br>
+                        Sist registrert: ${log.action}<br>
+                        Dato: ${log.timestamp}<br>
+                        🟢 Lovlig: ${log.counts.legal} | 🦀 Krabbe: ${log.counts.crab}
+                    `);
+                    mapMarkers.push(marker);
+                    bounds.push([log.lat, log.lng]);
+                }
+
+                if (bounds.length > 0) {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }, 200);
+        }
+
+        // Initialiser
+        renderHistory();
+    </script>
 </body>
 </html>

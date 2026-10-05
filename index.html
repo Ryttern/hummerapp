@@ -305,6 +305,30 @@
             border-left: 4px solid #0284c7;
         }
 
+        .export-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-export {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-csv { background-color: #16a34a; }
+        .btn-clear { background-color: #dc2626; }
+
         #qrcode {
             display: flex;
             justify-content: center;
@@ -418,6 +442,12 @@
         <div id="tab-history" class="tab-content">
             <div class="card">
                 <h2>LOGGFØRTE TREKK OG UTSETT</h2>
+                
+                <div class="export-btn-group">
+                    <button class="btn-export btn-csv" onclick="exportToCSV()">📊 Last ned CSV (Excel)</button>
+                    <button class="btn-export btn-clear" onclick="clearHistory()">🗑️ Tøm logg</button>
+                </div>
+
                 <div id="history-list">
                     <p style="color: var(--text-sub);">Ingen registreringer enda.</p>
                 </div>
@@ -458,7 +488,7 @@
             <span>Historikk</span>
         </button>
         <button class="nav-item" onclick="switchTab('map', this)">
-            <span class="nav-item-icon">🗺️️</span>
+            <span class="nav-item-icon">🗺</span>
             <span>Kart</span>
         </button>
         <button class="nav-item" onclick="switchTab('qr', this)">
@@ -550,6 +580,48 @@
                     ${item.lat ? `📍 GPS: ${item.lat.toFixed(5)},${item.lng.toFixed(5)}` : '📍 GPS: Ikke tilgjengelig'}
                 </div>
             `).join('');
+        }
+
+        function exportToCSV() {
+            if (logs.length === 0) {
+                alert('Det er ingen registreringer å eksportere.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "Tidspunkt;Teine;Handling;Lovlig Hummer;Krabber;Undermål;Overmål;Rogn;Breddegrad;Lengdegrad\n";
+
+            logs.forEach(item => {
+                const row = [
+                    `"${item.timestamp}"`,
+                    `"${item.teine}"`,
+                    `"${item.action}"`,
+                    item.counts.legal,
+                    item.counts.crab,
+                    item.counts.under,
+                    item.counts.over,
+                    item.counts.berried,
+                    item.lat || '',
+                    item.lng || ''
+                ].join(';');
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `hummerlogg_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearHistory() {
+            if (confirm('Er du sikker på at du vil slette hele historikken?')) {
+                logs = [];
+                localStorage.removeItem('hummer_logs');
+                renderHistory();
+            }
         }
 
         function initMap() {
